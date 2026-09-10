@@ -1,0 +1,822 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Avaya RCMS Protocol — Virtual Agent (Bot) Service Messages",
+  "type": "object",
+  "description": "VIRTUAL AGENT SERVICE ONLY. Message envelope for the Avaya Real-time Contextual Media Streaming (RCMS) protocol, scoped exclusively to the Virtual Agent (bot) service. Covers session.*, bot.*, and media message families. Other RCMS services (agentassist, recording, tts, asr, transcription, translator) are defined in the full protocol specification but are NOT included here. Spec: https://developers.avayacloud.com/avaya-infinity/docs/real-time-contextual-media-streaming",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Protocol version [major].[minor].[patch]. Required for session.start and session.started."
+    },
+    "type": {
+      "type": "string",
+      "description": "Message type identifier, e.g. 'session.start', 'bot.feature', 'media'."
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Session identifier preserved across WebSocket disconnects. RCMS spec §Protocol Design: supervise this identifier and recognize when it is reused on a different WebSocket connection."
+    },
+    "sequenceNum": {
+      "type": "integer",
+      "description": "Monotonic sequence number per sender per session. RCMS spec §Protocol Design: starts at 1, increments by 1 for every message sent. A reset to 1 indicates a session restart."
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp with millisecond granularity. For informational and debugging purposes."
+    },
+    "service": {
+      "type": "string",
+      "description": "Service identifier on bridge-originated bot.* messages. Value is 'streaming' on bot.started and bot.ended. Absent on bot.feature. Not defined in the RCMS spec envelope — bridge-emitted field."
+    },
+    "payload": {
+      "description": "Message-specific payload; shape depends on 'type'.",
+      "type": ["object", "null"]
+    }
+  },
+  "required": ["type", "sessionId", "sequenceNum", "timestamp"],
+  "additionalProperties": false,
+
+  "allOf": [
+    {
+      "oneOf": [
+        { "$ref": "#/definitions/TypedMessageSession" },
+        { "$ref": "#/definitions/TypedMessageMedia" },
+        { "$ref": "#/definitions/TypedMessageBot" }
+      ]
+    }
+  ],
+
+  "definitions": {
+
+    "TypedMessageSession": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": { "const": "session.start" },
+            "payload": { "$ref": "#/definitions/SessionStartPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.started" },
+            "payload": { "$ref": "#/definitions/SessionStartedPayload" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.update" },
+            "payload": { "$ref": "#/definitions/SessionUpdatePayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.updated" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.unupdatable" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.error" },
+            "payload": { "$ref": "#/definitions/SessionErrorPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.pause" },
+            "payload": { "$ref": "#/definitions/SessionPauseResumePayload" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.paused" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.resume" },
+            "payload": { "$ref": "#/definitions/SessionPauseResumePayload" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.resumed" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.ping" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.pong" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.event" },
+            "payload": { "$ref": "#/definitions/SessionEventPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.dtmf" },
+            "payload": { "$ref": "#/definitions/SessionDtmfPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.bind" },
+            "payload": { "$ref": "#/definitions/SessionBindPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.bound" },
+            "payload": { "$ref": "#/definitions/SessionBoundPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.recover" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.recovered" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.unrecoverable" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.end" },
+            "payload": { "$ref": "#/definitions/SessionEndPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.ending" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "session.ended" }
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+
+    "TypedMessageMedia": {
+      "description": "Audio frame message. Fields are at the top level of the message envelope — NOT nested inside a payload object. Transport is binary in all observed production sessions; base64 is supported but not used in practice.",
+      "properties": {
+        "type": { "const": "media" },
+        "bid": {
+          "type": "integer",
+          "description": "Bearer ID identifying which endpoint this audio belongs to."
+        },
+        "src": {
+          "type": "string",
+          "enum": ["rx", "tx", "none"],
+          "description": "Audio source. rx = received from caller (egress from Infinity). tx = transmitted to caller (ingress to Infinity). none = used in binary frame ingress path."
+        },
+        "asn": {
+          "type": "integer",
+          "description": "Audio sequence number, per-stream."
+        },
+        "ts": {
+          "type": ["integer", "string"],
+          "description": "Timestamp."
+        },
+        "lastf": {
+          "type": "boolean",
+          "description": "True indicates the final frame of an utterance."
+        },
+        "audio": {
+          "type": "string",
+          "description": "Base64-encoded audio payload. Present on base64 transport; absent on binary transport."
+        }
+      },
+      "required": ["type", "bid", "asn", "ts"],
+      "additionalProperties": false
+    },
+
+    "TypedMessageBot": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": { "const": "bot.start" },
+            "payload": { "$ref": "#/definitions/BotStartPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "bot.started" },
+            "payload": { "$ref": "#/definitions/BotStartedPayload" }
+          },
+          "required": ["type"]
+        },
+        {
+          "properties": {
+            "type": { "const": "bot.event" },
+            "payload": { "$ref": "#/definitions/BotEventPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "bot.feature" },
+            "payload": { "$ref": "#/definitions/BotFeaturePayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "bot.end" },
+            "payload": { "$ref": "#/definitions/BotEndPayload" }
+          },
+          "required": ["type", "payload"]
+        },
+        {
+          "properties": {
+            "type": { "const": "bot.ended" },
+            "payload": { "$ref": "#/definitions/BotEndedPayload" }
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+
+    "SessionStartPayload": {
+      "type": "object",
+      "description": "Infinity-originated session establishment. Contains media negotiation, endpoint identifiers, and Infinity runtime state. The payload includes additional Infinity-internal fields (allowSelfSigned, context.session.*) not defined in the RCMS spec — these are passed through without validation.",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Requested services for this session. This implementation handles 'bot' only."
+        },
+        "accountId": {
+          "type": "string",
+          "description": "Infinity tenant account identifier."
+        },
+        "engagementId": {
+          "type": "string",
+          "description": "Persistent engagement identifier. Follows the customer journey across transfers, workflow sessions, and interaction records. Also available at session.start.payload.context.session.additionalAttributes.engagementId."
+        },
+        "workflowSessionId": {
+          "type": "string",
+          "description": "Identifier for the workflow session that invoked the IVA module. Useful for correlating with Infinity workflow execution replays."
+        },
+        "interactionId": { "type": "string" },
+        "mediaEndpoints": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/SessionMediaEndpoint" }
+        },
+        "mediaTransports": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/MediaTransport" }
+        }
+      },
+      "required": [
+        "services",
+        "accountId",
+        "engagementId",
+        "workflowSessionId",
+        "interactionId",
+        "mediaEndpoints",
+        "mediaTransports"
+      ],
+      "additionalProperties": true
+    },
+
+    "SessionMediaEndpoint": {
+      "type": "object",
+      "properties": {
+        "endpointId": { "type": "string" },
+        "tag": { "type": "string" },
+        "flows": { "$ref": "#/definitions/EndpointFlows" },
+        "bidIndex": { "type": "integer" }
+      },
+      "required": ["endpointId", "tag", "flows"],
+      "additionalProperties": false
+    },
+
+    "EndpointFlows": {
+      "type": "object",
+      "properties": {
+        "audio": { "$ref": "#/definitions/AudioFlows" },
+        "video": { "$ref": "#/definitions/VideoFlows" }
+      },
+      "additionalProperties": false
+    },
+
+    "AudioFlows": {
+      "type": "object",
+      "properties": {
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["auto", "none"] }
+            },
+            "bid": { "type": "integer" }
+          },
+          "required": ["target", "bid"],
+          "additionalProperties": false
+        },
+        "egress": {
+          "type": "object",
+          "properties": {
+            "sources": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["tx", "rx", "none"] }
+            },
+            "bid": { "type": "integer" }
+          },
+          "required": ["sources", "bid"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "VideoFlows": {
+      "type": "object",
+      "properties": {
+        "ingress": { "type": "object" },
+        "egress": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+
+    "MediaTransport": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["avaya-wss", "avaya-wss-rtp"] },
+        "mediaCodecs": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": [
+              { "type": "string", "enum": ["audio", "video"] },
+              { "type": "string" },
+              { "type": "integer" },
+              { "type": "integer" }
+            ]
+          }
+        },
+        "transportEncodings": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["base64", "binary", "RTP/SAVP"] }
+        }
+      },
+      "required": ["type", "mediaCodecs"],
+      "additionalProperties": false
+    },
+
+    "SessionStartedPayload": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "mediaTransport": { "$ref": "#/definitions/MediaTransportSelected" }
+      },
+      "required": ["services", "mediaTransport"],
+      "additionalProperties": false
+    },
+
+    "MediaTransportSelected": {
+      "type": "object",
+      "description": "Bridge-selected media transport parameters. preferredPTimeMs declares the bridge's preferred audio frame size; maskDTMF suppresses DTMF digit forwarding to the AI provider for PCI safety.",
+      "properties": {
+        "type": { "type": "string", "enum": ["avaya-wss", "avaya-wss-rtp"] },
+        "preferredPTimeMs": {
+          "type": "integer",
+          "minimum": 20,
+          "description": "Bridge-preferred audio frame size in milliseconds. Declared in session.started; Infinity is expected to deliver frames at this interval."
+        },
+        "dtx": { "type": "string", "enum": ["auto", "disabled"] },
+        "maskDTMF": {
+          "type": "boolean",
+          "description": "When true, DTMF digits are not forwarded to the AI provider. Documented in the RCMS spec and accepted by Infinity on the wire."
+        },
+        "mediaCodecs": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": [
+              { "type": "string", "enum": ["audio", "video"] },
+              { "type": "string" },
+              { "type": "integer" },
+              { "type": "integer" }
+            ]
+          }
+        },
+        "transportEncoding": {
+          "type": "string",
+          "enum": ["base64", "binary", "RTP/SAVP"]
+        }
+      },
+      "required": ["type", "mediaCodecs", "transportEncoding"],
+      "additionalProperties": false
+    },
+
+    "SessionUpdatePayload": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "accountId": { "type": "string" },
+        "engagementId": { "type": "string" },
+        "workflowSessionId": { "type": "string" },
+        "interactionId": { "type": "string" },
+        "mediaEndpoints": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/SessionMediaEndpoint" }
+        }
+      },
+      "required": [
+        "services",
+        "accountId",
+        "engagementId",
+        "workflowSessionId",
+        "interactionId",
+        "mediaEndpoints"
+      ],
+      "additionalProperties": false
+    },
+
+    "SessionErrorPayload": {
+      "type": "object",
+      "description": "Used for protocol-level message errors only — e.g. a malformed session.event. Not used for service failures; those use [service].ended with status in payload.context.",
+      "properties": {
+        "messageType": { "type": "string" },
+        "messageSequenceNum": { "type": "integer" },
+        "status": { "$ref": "#/definitions/Status" }
+      },
+      "required": ["messageType", "messageSequenceNum", "status"],
+      "additionalProperties": false
+    },
+
+    "SessionPauseResumePayload": {
+      "type": "object",
+      "properties": {
+        "mediaEndpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "endpointId": { "type": "string" },
+              "audio": {
+                "type": "object",
+                "properties": {
+                  "flows": {
+                    "type": "array",
+                    "items": { "type": "string", "enum": ["ingress", "egress"] }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": ["endpointId"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "SessionEventPayload": {
+      "type": "object",
+      "properties": {
+        "endpointId": { "type": "string" },
+        "content": {
+          "type": "object",
+          "description": "Opaque application-defined content."
+        }
+      },
+      "required": ["content"],
+      "additionalProperties": false
+    },
+
+    "SessionDtmfPayload": {
+      "type": "object",
+      "description": "DTMF digit event. The bridge logs these as observed-but-not-handled and drops them without forwarding digit content to the AI provider. See maskDTMF in MediaTransportSelected.",
+      "properties": {
+        "endpointId": { "type": "string" },
+        "digits": { "type": "string" }
+      },
+      "required": ["endpointId", "digits"],
+      "additionalProperties": false
+    },
+
+    "SessionBindPayload": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["services"],
+      "additionalProperties": false
+    },
+
+    "SessionBoundPayload": {
+      "type": "object",
+      "properties": {
+        "services": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["services"],
+      "additionalProperties": false
+    },
+
+    "SessionEndPayload": {
+      "type": "object",
+      "description": "Platform-initiated session termination. status.reason is a free string; observed runtime value is 'ended' (lowercase).",
+      "properties": {
+        "status": { "$ref": "#/definitions/Status" }
+      },
+      "required": ["status"],
+      "additionalProperties": false
+    },
+
+    "BotStartPayload": {
+      "type": "object",
+      "description": "Infinity-originated bot session invitation. Contains provider routing key, credentials, call context, and opaque workflow variables in the context object. RCMS spec §AI Bot Message Definitions.",
+      "properties": {
+        "endpointId": {
+          "type": "string",
+          "description": "Media endpoint identifier for this bot session."
+        },
+        "botId": {
+          "type": "string",
+          "description": "Provider routing key. This bridge uses a prefix convention: 'echo', 'elevenlabs:<agent_id>', 'gemini:<model>', 'openai:<model>', 'xai:<model>'."
+        },
+        "botCredentials": {
+          "type": "string",
+          "description": "Optional per-call provider credentials. When present, base64-encoded JSON {'apiKey': '...'}. Most deployments leave this empty and configure provider keys in the bridge .env file."
+        },
+        "language": {
+          "type": "string",
+          "description": "ISO-639-1 + ISO-3166 language code, e.g. 'en-US'."
+        },
+        "domain": {
+          "type": "string",
+          "description": "Infinity domain name."
+        },
+        "to": {
+          "type": "string",
+          "description": "Called number (DNIS) in E.164 format or SIP URI."
+        },
+        "from": {
+          "type": "string",
+          "description": "Calling number (ANI) in E.164 format or SIP URI."
+        },
+        "ucid": {
+          "type": "string",
+          "description": "Avaya Universal Call ID."
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["INBOUND", "OUTBOUND"]
+        },
+        "context": {
+          "type": "object",
+          "description": "Opaque workflow context — arbitrary JSON. Populated from IVA module custom parameters in the Infinity workflow. This is the integration point for passing CRM data, engagementId, workflowSessionId, and any other workflow variables to the AI provider."
+        }
+      },
+      "required": [
+        "endpointId",
+        "botId",
+        "language",
+        "domain",
+        "to",
+        "from",
+        "ucid",
+        "direction"
+      ],
+      "additionalProperties": false
+    },
+
+    "BotStartedPayload": {
+      "type": "object",
+      "description": "Bridge confirmation that the bot session is active and audio may flow. RCMS spec §AI Bot Message Definitions.",
+      "properties": {
+        "endpointId": { "type": "string" }
+      },
+      "required": ["endpointId"],
+      "additionalProperties": false
+    },
+
+    "BotEventPayload": {
+      "type": "object",
+      "properties": {
+        "content": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "BotFeaturePayload": {
+      "type": "object",
+      "description": "Bridge-originated mid-session feature event. endpointId appears at the payload level (not inside the feature sub-object). RCMS spec §AI Bot Message Definitions — bot.feature.",
+      "properties": {
+        "endpointId": {
+          "type": "string",
+          "description": "Media endpoint identifier. Present at payload level on all bot.feature messages."
+        },
+        "ftype": {
+          "type": "string",
+          "enum": ["TRANSCRIPT", "LIVE_AGENT_HANDOFF", "TRANSFER_CALL", "PROVIDER_GOAWAY"],
+          "description": "Feature type. TRANSCRIPT: conversation turn. LIVE_AGENT_HANDOFF: route caller to agent queue. TRANSFER_CALL: PSTN/SIP transfer. PROVIDER_GOAWAY: provider session limit approaching (Gemini only)."
+        },
+        "transcript": { "$ref": "#/definitions/BotTranscript" },
+        "liveAgentHandoff": { "$ref": "#/definitions/BotLiveAgentHandoff" },
+        "transferCall": { "$ref": "#/definitions/BotTransferCall" },
+        "providerGoAway": { "$ref": "#/definitions/BotProviderGoAway" }
+      },
+      "required": ["ftype"],
+      "additionalProperties": false
+    },
+
+    "BotTranscript": {
+      "type": "object",
+      "description": "Conversation turn transcript. speaker must be 'BOT' for bot turns — using 'AGENT' causes bot turns to be absent from the Infinity call record.",
+      "properties": {
+        "turnId": {
+          "type": "string",
+          "description": "Unique turn identifier (UUID). Used for ordering and deduplication."
+        },
+        "speaker": {
+          "type": "string",
+          "enum": ["CUSTOMER", "BOT"],
+          "description": "Speaker role. Use 'BOT' for bot turns — not 'AGENT'."
+        },
+        "isFinal": {
+          "type": "boolean",
+          "description": "True for a complete turn. Interim transcripts (isFinal: false) are supported but not required."
+        },
+        "text": { "type": "string" },
+        "digits": { "type": "string" },
+        "confidence": {
+          "type": "number",
+          "description": "Confidence score 0.0–1.0. Currently emitted as a fixed value across all providers."
+        },
+        "sentiment": { "$ref": "#/definitions/Sentiment" },
+        "language": { "type": "string" },
+        "startTsMs": {
+          "type": "integer",
+          "description": "Turn start time (Unix epoch ms). Captured at turn start, not flush time, to preserve correct ordering even when transcript completion events arrive out of order."
+        },
+        "endTsMs": { "type": "integer" },
+        "context": { "type": "object" }
+      },
+      "required": ["turnId", "speaker", "isFinal", "text", "confidence", "language", "startTsMs"],
+      "additionalProperties": false
+    },
+
+    "BotLiveAgentHandoff": {
+      "type": "object",
+      "description": "Live agent handoff directive. The Infinity workflow reads byobotLiveAgentHandoff.queueId to route the caller.",
+      "properties": {
+        "queueId": {
+          "type": "string",
+          "description": "Target agent queue identifier."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "context": {
+          "type": "object",
+          "description": "Opaque handoff context — reason, transcript summary, CRM data for the receiving agent."
+        }
+      },
+      "required": ["queueId"],
+      "additionalProperties": false
+    },
+
+    "BotTransferCall": {
+      "type": "object",
+      "description": "PSTN or SIP transfer directive. The Infinity workflow reads byobotTransferCall.uri to execute the transfer.",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "description": "Transfer target URI. Supported schemes: tel:, sip:."
+        },
+        "context": { "type": "object" }
+      },
+      "required": ["uri"],
+      "additionalProperties": false
+    },
+
+    "BotProviderGoAway": {
+      "type": "object",
+      "description": "Provider session limit approaching — Gemini Live only. Emitted when Gemini sends a goAway frame. The Infinity workflow should route to a live agent before disconnection.",
+      "properties": {
+        "provider": { "type": "string" },
+        "timeLeft": {
+          "type": "string",
+          "description": "Estimated time remaining before provider disconnects, e.g. '30s'."
+        }
+      },
+      "required": ["provider", "timeLeft"],
+      "additionalProperties": false
+    },
+
+    "BotEndPayload": {
+      "type": "object",
+      "description": "Infinity-originated bot session termination request. The bridge acknowledges with bot.ended. RCMS spec §AI Bot Message Definitions — bot.end.",
+      "properties": {
+        "endpointId": { "type": "string" },
+        "status": { "$ref": "#/definitions/Status" },
+        "context": { "type": "object" }
+      },
+      "required": ["endpointId", "status"],
+      "additionalProperties": false
+    },
+
+    "BotEndedPayload": {
+      "type": "object",
+      "description": "Bridge-originated bot session termination signal — the universal clean-termination message for all closure paths. Status and outcome details are nested inside payload.context.status (not at payload level). The Infinity workflow reads byobotEndContext (populated verbatim from payload.context) to determine what happened. RCMS spec §AI Bot Message Definitions — bot.ended.",
+      "properties": {
+        "endpointId": { "type": "string" },
+        "context": {
+          "type": "object",
+          "description": "Outcome context — populated verbatim into the byobotEndContext workflow variable. For self-service complete: {status: {code: 200, reason: 'ENDPOINT_RELEASED', description: '<PROVIDER>: ...'}}. For failure: {status: {code: 5xx, reason: '...', description: '...'}}. For handoff: empty or absent (byobotLiveAgentHandoff carries the outcome). See BUILDERS_GUIDE.md §3 Phase 3.",
+          "properties": {
+            "status": { "$ref": "#/definitions/Status" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["endpointId"],
+      "additionalProperties": false
+    },
+
+    "Sentiment": {
+      "type": "object",
+      "properties": {
+        "score": { "type": "number" },
+        "magnitude": { "type": "number" }
+      },
+      "required": ["score", "magnitude"],
+      "additionalProperties": false
+    },
+
+    "Status": {
+      "type": "object",
+      "description": "Status object used in session and service termination messages. code: 200 indicates success; 4xx/5xx indicate errors. reason is a free string — bridge-defined values include ENDPOINT_RELEASED, CALLER_DISCONNECTED, UNSUPPORTED_SERVICE, SERVICE_UNAVAILABLE, INTERNAL_ERROR. description is optional human-readable detail; bridge-originated descriptions carry a provider prefix (ELEVENLABS:, GEMINI:, OPENAI:, XAI:, ECHO:). RCMS spec §Status Codes.",
+      "properties": {
+        "code": { "type": "integer" },
+        "reason": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["code", "reason"],
+      "additionalProperties": false
+    }
+  }
+}

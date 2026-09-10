@@ -1,0 +1,27 @@
+{
+  "_comment": "TODO: Populate with the ElevenLabs agent export once baseline prompt, voice, and tools are finalised. Fetch via the ElevenLabs API /v1/convai/agents/<agent_id> and paste here, redacting any secrets.",
+  "name": "Infinity Virtual Agent (template)",
+  "conversation_config": {
+    "agent": {
+      "prompt": {
+        "prompt": "TODO: system prompt. Reference dynamic variables: {{call_to}}, {{call_from}}, {{ucid}}, {{call_direction}}, {{language}}, {{domain}}.",
+        "llm": "TODO",
+        "tools": [
+          {
+            "_ref": "tools/live-agent-handoff.json"
+          }
+        ]
+      },
+      "first_message": "TODO",
+      "language": "en"
+    },
+    "tts": {
+      "voice_id": "TODO"
+    }
+  },
+  "platform_settings": {
+    "auth": {
+      "_note": "TODO: confirm whether API key auth is sufficient or workspace-scoped tokens are required."
+    }
+  }
+}

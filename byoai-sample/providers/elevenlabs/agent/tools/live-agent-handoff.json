@@ -1,0 +1,23 @@
+{
+  "name": "transfer_to_agent",
+  "description": "Transfer the caller to a human agent queue in Avaya Infinity. Use this when the customer requests a human agent, or when the issue cannot be resolved by the virtual agent.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "queue_id": {
+        "type": "string",
+        "description": "The Infinity queue ID to transfer the caller to. Must be a valid queue ID configured in the Infinity Workflow Designer."
+      },
+      "reason": {
+        "type": "string",
+        "description": "Brief reason for the transfer. This is passed as context to the receiving agent."
+      },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Optional tags to attach to the interaction for routing or reporting purposes."
+      }
+    },
+    "required": ["queue_id", "reason"]
+  }
+}

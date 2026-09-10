@@ -1,0 +1,451 @@
+{
+  "workflow": {
+    "id": "025d010507b5a4716956377653",
+    "name": "Inbound Innovation Hub - ElevenLabs",
+    "isActive": true,
+    "type": "event",
+    "config": {},
+    "extension": null,
+    "createdAt": "2026-05-07T00:13:39.000Z",
+    "updatedAt": "2026-05-07T13:11:53.000Z"
+  },
+  "workflowVersion": {
+    "id": "026d01050784281e900cec9aab",
+    "versionNumber": "1.05",
+    "isPublished": true,
+    "isCurrentVersion": true,
+    "isTemplate": false,
+    "isActive": true,
+    "details": {
+      "voices": {
+        "en-us": {
+          "voice": "en-US-Standard-A",
+          "gender": "male"
+        }
+      },
+      "defaultLanguage": "en-us",
+      "fakeTypingEvents": false,
+      "supportedLanguages": [
+        "en-us"
+      ]
+    },
+    "startItemId": "027d010507525ce67c49425120",
+    "commTypes": [
+      "phone"
+    ],
+    "publishedAt": "2026-05-07T13:18:27.000Z",
+    "publishedBy": "002d0102270a34127c4a214876",
+    "madeCurrentAt": "2026-05-07T13:18:27.000Z",
+    "madeCurrentBy": "002d0102270a34127c4a214876",
+    "createdAt": "2026-05-07T13:17:59.000Z",
+    "updatedAt": "2026-05-07T13:18:27.000Z",
+    "itemCount": null
+  },
+  "workflowItems": [
+    {
+      "id": "027d0105071e3af569abfa52cf",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "setVariable",
+      "data": {
+        "pos": {
+          "x": -20,
+          "y": 460
+        },
+        "label": "Source Details",
+        "ports": [
+          {
+            "portId": "portInbound"
+          },
+          {
+            "portId": "portOutbound"
+          }
+        ],
+        "linkTo": {
+          "portOutbound": "027d01050774b16db84bad8efd"
+        },
+        "variables": [
+          {
+            "name": "source.email",
+            "value": "variables.email",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "source.name",
+            "value": "{{firstName}} {{lastName}}",
+            "sendToAnalytics": false
+          }
+        ]
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": null
+    },
+    {
+      "id": "027d010507319cce10f7186012",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "decision",
+      "data": {
+        "pos": {
+          "x": -200,
+          "y": 720
+        },
+        "label": "Self Service Complete?",
+        "ports": [
+          {
+            "portId": "portInbound",
+            "outboundPortsCount": 2
+          },
+          {
+            "portId": "valid",
+            "portName": "VALID",
+            "outboundPortsCount": 2
+          },
+          {
+            "portId": "invalid",
+            "portName": "INVALID",
+            "outboundPortsCount": 2
+          }
+        ],
+        "linkTo": {
+          "valid": "027d010507c5373082939464ee",
+          "invalid": "027d01050745226f2279aaac24"
+        },
+        "queryBuilder": {
+          "id": "8bb9aaa8-0123-4456-b89a-b19dfe38c3d5",
+          "type": "group",
+          "children1": [
+            {
+              "id": "99abaa9a-cdef-4012-b456-719dfe38c3d5",
+              "type": "rule",
+              "properties": {
+                "field": "{{variables.byobotEndContext.status.code}}",
+                "value": [
+                  {
+                    "value": "200",
+                    "inputType": "standardId"
+                  }
+                ],
+                "operator": "equals",
+                "valueSrc": [
+                  "value"
+                ],
+                "valueType": [
+                  "text"
+                ]
+              }
+            }
+          ],
+          "properties": {
+            "conjunction": "AND"
+          }
+        }
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": null
+    },
+    {
+      "id": "027d01050745226f2279aaac24",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "createInteraction",
+      "data": {
+        "pos": {
+          "x": -40,
+          "y": 860
+        },
+        "text": {
+          "dataMap": [
+            {
+              "key": "source.phoneNumber",
+              "value": "source.phoneNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.name",
+              "value": "source.name",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumberName",
+              "value": "routing.inboundNumberName",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumber",
+              "value": "routing.inboundNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "details.tags",
+              "value": "details.tags",
+              "selectorType": "variable"
+            },
+            {
+              "key": "custom.crmData",
+              "value": "crm",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.email",
+              "value": "source.email",
+              "selectorType": "variable"
+            }
+          ],
+          "commType": "messaging",
+          "subCommType": "text",
+          "matchingStrategy": "EAD_MIA"
+        },
+        "label": "CRM",
+        "phone": {
+          "dataMap": [
+            {
+              "key": "source.phoneNumber",
+              "value": "source.phoneNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.name",
+              "value": "source.name",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumberName",
+              "value": "routing.inboundNumberName",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumber",
+              "value": "routing.inboundNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "details.tags",
+              "value": "details.tags",
+              "selectorType": "variable"
+            },
+            {
+              "key": "custom.crmData",
+              "value": "crm",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.email",
+              "value": "source.email",
+              "selectorType": "variable"
+            }
+          ],
+          "commType": "phone",
+          "subCommType": "inbound",
+          "matchingStrategy": "EAD_MIA"
+        },
+        "ports": [
+          {
+            "portId": "portInbound",
+            "outboundPortsCount": 1
+          },
+          {
+            "portId": "ifError",
+            "portName": "IF_ERROR",
+            "outboundPortsCount": 1
+          }
+        ],
+        "linkTo": {
+          "ifError": "027d010507c5373082939464ee"
+        },
+        "messaging": {
+          "dataMap": [
+            {
+              "key": "source.phoneNumber",
+              "value": "source.phoneNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.name",
+              "value": "source.name",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumberName",
+              "value": "routing.inboundNumberName",
+              "selectorType": "variable"
+            },
+            {
+              "key": "routing.inboundNumber",
+              "value": "routing.inboundNumber",
+              "selectorType": "variable"
+            },
+            {
+              "key": "details.tags",
+              "value": "details.tags",
+              "selectorType": "variable"
+            },
+            {
+              "key": "custom.crmData",
+              "value": "crm",
+              "selectorType": "variable"
+            },
+            {
+              "key": "source.email",
+              "value": "source.email",
+              "selectorType": "variable"
+            }
+          ],
+          "commType": "messaging",
+          "subCommType": "chat",
+          "matchingStrategy": "EAD_MIA"
+        }
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": null
+    },
+    {
+      "id": "027d010507525ce67c49425120",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "start",
+      "data": {
+        "pos": {
+          "x": -20,
+          "y": 220
+        },
+        "label": "Start",
+        "ports": [
+          {
+            "portId": "portOutbound",
+            "outboundPortsCount": 0
+          }
+        ],
+        "linkTo": {
+          "portOutbound": "027d010507a047a6d5bbcf56fe"
+        }
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": null
+    },
+    {
+      "id": "027d01050774b16db84bad8efd",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "iva",
+      "data": {
+        "pos": {
+          "x": -100,
+          "y": 580
+        },
+        "label": "Intelligent Virtual Agent",
+        "ports": [
+          {
+            "portId": "portInbound"
+          },
+          {
+            "portId": "successful",
+            "portName": "SUCCESSFUL"
+          },
+          {
+            "portId": "handoff",
+            "portName": "IVA_PORT_HANDOFF"
+          },
+          {
+            "portId": "failed",
+            "portName": "FAILED"
+          }
+        ],
+        "linkTo": {
+          "failed": "027d01050745226f2279aaac24",
+          "handoff": "027d01050745226f2279aaac24",
+          "successful": "027d010507319cce10f7186012"
+        },
+        "customParameters": {
+          "botId": "elevenlabs:agent_8001kqafgryqe3eb8kg3dj1frpgy",
+          "email": "{{email}}",
+          "caseId": "{{caseId}}",
+          "lastName": "{{lastName}}",
+          "firstName": "{{firstName}}",
+          "caseSubject": "{{caseSubject}}",
+          "engagementId": "{{engagementId}}",
+          "caseDescription": "{{caseDescription}}",
+          "workflowSessionId": "{{workflowSessionId}}"
+        },
+        "enableHandoffEvents": true,
+        "enableTransferCallEvents": false
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": "2026-05-07T13:18:08.000Z"
+    },
+    {
+      "id": "027d010507a047a6d5bbcf56fe",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "setVariable",
+      "data": {
+        "pos": {
+          "x": -20,
+          "y": 340
+        },
+        "label": "CRM Data (Demo)",
+        "ports": [
+          {
+            "portId": "portInbound",
+            "outboundPortsCount": 0
+          },
+          {
+            "portId": "portOutbound",
+            "outboundPortsCount": 0
+          }
+        ],
+        "linkTo": {
+          "portOutbound": "027d0105071e3af569abfa52cf"
+        },
+        "variables": [
+          {
+            "name": "email",
+            "value": "test@example.com",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "caseId",
+            "value": "5656",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "lastName",
+            "value": "Michaels",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "firstName",
+            "value": "Todd",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "caseDescription",
+            "value": "Interested in a demo of Avaya Infinity",
+            "sendToAnalytics": false
+          },
+          {
+            "name": "caseSubject",
+            "value": "Self Service Virtual Agents",
+            "sendToAnalytics": false
+          }
+        ]
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": "2026-05-07T13:18:21.000Z"
+    },
+    {
+      "id": "027d010507c5373082939464ee",
+      "workflowId": "025d010507b5a4716956377653",
+      "type": "end",
+      "data": {
+        "pos": {
+          "x": -40,
+          "y": 1020
+        },
+        "label": "End",
+        "ports": [
+          {
+            "portId": "portInbound",
+            "outboundPortsCount": 0
+          }
+        ]
+      },
+      "createdAt": "2026-05-07T13:17:59.000Z",
+      "updatedAt": null
+    }
+  ]
+}
